@@ -1,0 +1,60 @@
+package com.example.demo.controllers;
+
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.entities.Accounts;
+import com.example.demo.repositories.AccountsRepo;
+
+@RestController
+public class AccountsController {
+
+	@Autowired
+	AccountsRepo repo;
+	
+	@PostMapping("/login")
+	public Boolean getLoginDetails(int cid, String password) {
+		Optional<Accounts> a = repo.findById(cid);
+		 return a.map(account -> account.getPassword().equals(password)).orElse(false);
+	}
+	
+	@PostMapping("/register")
+	public String createAccount(@RequestBody Accounts a) {
+		if(repo.existsById(a.getCid())) {
+			return "Account already exists";
+		}
+			repo.save(a);
+			return "Account record created";
+	}
+	@PutMapping("/changepwd/{cid}/{abc}/{xyz}")
+	public String changePassword(@PathVariable int cid,@PathVariable String abc,@PathVariable String xyz) {
+		if(repo.existsById(cid)) {
+			 Optional<Accounts> optionalAccount = repo.findById(cid);
+			 Accounts account = optionalAccount.get();
+	            if (account.getPassword().equals(abc)) {
+	                account.setPassword(xyz);
+	                repo.save(account);
+	                return "Password changed successfully";
+	            }else {
+	            	return "Password could not be changes";
+	            }
+		}else {
+			return "account does not exsist";
+		}
+			
+	}
+	
+	@GetMapping("/accounts/above")
+	public List<Accounts> getAccountsAboveBalance(int amount) {
+        List<Accounts> aboveBalance = repo.findByAm(amount);
+        return ResponseEntity.ok(accountsAboveBalance);
+    }
+}
